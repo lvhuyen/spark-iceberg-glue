@@ -1,0 +1,5 @@
+# artifacts
+spark_dependencies/jars
+
+# IDEs
+.idea
