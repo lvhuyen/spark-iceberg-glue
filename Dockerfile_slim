@@ -9,24 +9,24 @@ RUN mkdir -p /usr/share/man/man1 /usr/share/man/man2 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN pip install --upgrade pip
+RUN pip install --no-cache-dir --upgrade pip
 
 ## Download spark and and install dependencies
 ENV SPARK_HOME=${SPARK_HOME:-"/opt/spark"}
 ENV HADOOP_HOME=${HADOOP_HOME:-"/opt/hadoop"}
-RUN mkdir -p ${HADOOP_HOME} && mkdir -p ${SPARK_HOME}
+RUN mkdir -p ${HADOOP_HOME} 
+# && mkdir -p ${SPARK_HOME}
 
 ADD spark-3.3.0-bin-spark-with-glue-hive.tgz /opt
-RUN mv /opt/spark-3.3.0-bin-spark-with-glue-hive/* /opt/spark/
+RUN ln -s /opt/spark-3.3.0-bin-spark-with-glue-hive $SPARK_HOME
+
 
 #ENV PYTHONPATH=$(ZIPS=("$SPARK_HOME"/python/lib/*.zip); IFS=:; echo "${ZIPS[*]}"):$PYTHONPATH
 ENV PYTHONPATH="$SPARK_HOME"/python/lib/pyspark.zip:"$SPARK_HOME"/python/lib/py4j-0.10.9.5-src.zip:$PYTHONPATH
 ENV PATH="/opt/spark/sbin:/opt/spark/bin:${PATH}"
-RUN pip install --no-cache-dir -e $SPARK_HOME/python
-RUN chmod u+x /opt/spark/sbin/* && \
-    chmod u+x /opt/spark/bin/*
+RUN pip install --no-cache-dir -e $SPARK_HOME/python \
+    && chmod u+x /opt/spark/sbin/* \
+    && chmod u+x /opt/spark/bin/*
 
-COPY spark_dependencies/jars $SPARK_HOME/jars
-COPY spark_dependencies/conf/spark-defaults.conf $SPARK_HOME/conf/
-COPY glue/jars $SPARK_HOME/jars
-COPY glue/conf/hive-site.xml $SPARK_HOME/conf/
+COPY spark_dependencies $SPARK_HOME
+COPY glue $SPARK_HOME

@@ -1,5 +1,6 @@
 # artifacts
 spark_dependencies/jars
+/spark*tgz
 
 # IDEs
 .idea

@@ -2,9 +2,9 @@ FROM python:3.10-slim-bullseye as spark_iceberg_glue
 
 # Install Java 11 (for pyspark 3) and confirm that it works
 # Deal with slim variants not having man page directories (which causes "update-alternatives" to fail)
-RUN mkdir -p /usr/share/man/man1 /usr/share/man/man2 && \
-    apt-get update -yqq && \
-    apt-get install -yqq --no-install-recommends \
+RUN mkdir -p /usr/share/man/man1 /usr/share/man/man2 \
+    && apt-get update -yqq \
+    && apt-get install -yqq --no-install-recommends \
       less \
       sudo \
       curl \
@@ -13,19 +13,20 @@ RUN mkdir -p /usr/share/man/man1 /usr/share/man/man2 && \
       openjdk-11-jdk \
       build-essential \
       software-properties-common \
-      ssh && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+      ssh \
+      git \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --upgrade pip
+RUN pip install --no-cache-dir --upgrade pip
 
 ## Download spark and and install dependencies
 ENV SPARK_HOME=${SPARK_HOME:-"/opt/spark"}
 ENV HADOOP_HOME=${HADOOP_HOME:-"/opt/hadoop"}
-RUN mkdir -p ${HADOOP_HOME} && mkdir -p ${SPARK_HOME}
 
 ADD spark-3.3.0-bin-spark-with-glue-hive.tgz /opt
-RUN mv /opt/spark-3.3.0-bin-spark-with-glue-hive/* /opt/spark/
+RUN ln -s /opt/spark-3.3.0-bin-spark-with-glue-hive $SPARK_HOME \
+    && mkdir -p ${HADOOP_HOME}
 
 #ENV PYTHONPATH=$(ZIPS=("$SPARK_HOME"/python/lib/*.zip); IFS=:; echo "${ZIPS[*]}"):$PYTHONPATH
 ENV PYTHONPATH="$SPARK_HOME"/python/lib/pyspark.zip:"$SPARK_HOME"/python/lib/py4j-0.10.9.5-src.zip:$PYTHONPATH
